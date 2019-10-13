@@ -1,0 +1,167 @@
+/etc/ansible/
+
+ansible.conf
+hosts ---- host file where client hosts need to keep
+
+/root/.ssh 
+
+authorized_keys ---file where we need to keep client public key for keyless authentication 
+
+ssh-keygen -t rsa   ----to create public key for keyless authentication
+
+ssh-copy-id -i ~/.ssh/mykey user@host  ---- to copy key to client hosts
+
+Ansible -m setup hostname   -----list of all of the ansible_ variables
+
+ansible-playbook playbook.yml -f 10   --Let’s run a playbook using a parallelism level of 10
+
+ansible-pull   --is a small script that will checkout a repo of configuration instructions from git
+
+ansible-playbook playbook.yml --check    -----it will check the whole playbook and show the what will happen 
+
+ansible-lint veryify-apache.yml   --run a detail check of your playbooks before you execute them
+
+handlers, notify:  ---- used to run second task when first task executed successfully.
+
+vars:, Vars_files:, vars_prompt: prompt , ----give variable, variable file , read data from user
+
+async: seconds --- when task running beyond than mentioned seconds it will stop the task
+
+poll: seconds   --- it will show the task status every mentioned seconds 
+
+run_once: true -- if the task want to run once on one host (it will run on host which ansible pickup first) 
+   delegate_to: host name(group name ) ---- if you want to specify on which host task want to run
+   
+loops:    ---- if you want to repeat the task until certain result reached
+     tasks:
+	     -name: add user
+		  user: name={{ item }}  state=present
+		  with_items:
+		    - user1
+			- user2
+			- user3
+			
+when statement --
+     tasks:
+	   -name: install apache for debian
+	    command: apt-get install apache2
+		when:ansible_os_family == "Debian"
+	   -name: install apache for RedHat
+	    commmand: yum install httpd
+		when:ansible_os_family == "RedHat"
+    
+     tasks:
+	   -command: echo{{item}}
+        with_items: [ 0, 2, 4, 6, 8, 10 ]
+		when: item > 5
+Vault        encrypt the files
+    Ansible-vault create playbook.yml	---create encrypted file
+	Ansible-vault edit playbook.yml     ---edit file
+	Ansible-vault rekey playbook.yml    ---change the passwd
+	Ansible-vault decrypt playbook.yml  ---decrypt file
+	Ansible-vault encrypt playbook.yml  ---encrypt existing file
+
+include statement
+	tasks:
+	 -include:includeplay.yml
+	 -name: install apache for RedHat
+	    commmand: yum install httpd
+
+Tags statement      ansible-playbook playbook.yml --tags "firstname"  ---- it is going to run only firstname task
+
+    tasks:
+	 -name: first name
+	  raw: echo "ADAM" > /tmp/log
+	  tags:
+        - firstname	  
+     -name: second name
+	  raw: echo "m" >> /tmp/log
+	  tags:
+        - secondname
+		
+Roles 
+       Organizing playbooks into directory structure called roles
+    master.yml
+	roles/<rilename>/
+	                tasks/main.yml
+					vars/main.yml
+					handlers/main.yml
+					defaults/main.yml
+					meta/main.yml
+
+	- hosts 
+      roles:
+       - webservers
+	   
+    - hosts 
+      roles:
+       - {role:redhatwebservers, when: ansible_os_family == "Redhat" }
+
+wait_for:     --- if you want to wait for set amount of time
+
+      tasks:
+	  -name: wait for the service to start the listning on port 80
+	   wait_for:
+	     port: 80
+		 state: started
+	  -name: wait for the file to available
+	   wait_for:
+	     path: /home/bhargavs/list
+		 
+ansible-playbook playbook.yml --extra-vars "variable=value"		 ---passing variables from command line
+
+ 
+		 
+	   
+	   
+   	   
+
+
+
+
+
+	   
+	   
+
+
+
+
+
+
+
+site.yml
+webservers.yml
+fooservers.yml
+roles/
+   common/
+     tasks/
+     handlers/
+     files/
+     templates/
+     vars/
+     defaults/
+     meta/
+   webservers/
+     tasks/
+     defaults/
+     meta/
+	 
+	 
+	 
+
+install_apache.yaml
+
+
+-host All
+  tasks:
+   -name : ensure that the apache httpd is latest version
+     yum : name=httpd state=latest
+
+   -name : start httpd
+    service:
+         name=httpd 
+		 state=started
+		 
+ansible-playbook 		install_apache.yaml    --- to run .yaml files
+
+		 
